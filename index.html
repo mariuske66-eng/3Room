@@ -409,10 +409,10 @@
       { name: "YouTube",    kategorie: "Medien", link: "https://www.youtube.com",   logo: "https://cdn.simpleicons.org/youtube/FF0000" },
       { name: "Instagram",  kategorie: "Social", link: "https://www.instagram.com", logo: "https://cdn.simpleicons.org/instagram/E4405F" },
       { name: "Spotify",    kategorie: "Medien", link: "https://open.spotify.com",  logo: "https://cdn.simpleicons.org/spotify/1DB954" },
-      { name: "Web",        kategorie: "Tools",  aktion: "suche" }, // setzt den Cursor in die Suchleiste
+      { name: "Browser",    kategorie: "Tools",  aktion: "suche" }, // setzt den Cursor in die Suchleiste
     ];
 
-    // Globus-Symbol für das Icon "Web"
+    // Globus-Symbol für das Icon "Browser"
     const WEB_SVG = `
       <svg width="100%" height="100%" viewBox="0 0 160 160">
         <defs>
@@ -480,9 +480,17 @@
       return kachel;
     }
 
+    // ===== Reihenfolge: "Browser" zuerst, danach alle anderen alphabetisch =====
+    // (Groß-/Kleinschreibung egal, Umlaute richtig einsortiert)
+    const sortiert = [...apps].sort(function (a, b) {
+      if (a.aktion === "suche") return -1;  // Browser nach vorne
+      if (b.aktion === "suche") return 1;
+      return a.name.localeCompare(b.name, "de", { sensitivity: "base" });
+    });
+
     // ===== App-Icons ins Raster zeichnen =====
     const raster = document.getElementById("raster");
-    for (const app of apps) raster.appendChild(baueApp(app));
+    for (const app of sortiert) raster.appendChild(baueApp(app));
 
     // ===== Fenster öffnen und schließen =====
     const extOverlay = document.getElementById("ext-overlay");
