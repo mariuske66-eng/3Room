@@ -110,6 +110,22 @@
       text-overflow: ellipsis;
       max-width: 76px;
     }
+
+    /* ===== Überschrift über einem Bereich ===== */
+    .ueberschrift {
+      max-width: 500px;
+      margin: 40px auto 16px;
+      font-size: 20px;
+      font-weight: 700;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Kürzel statt Logo (für Extensions) */
+    .kuerzel {
+      font-size: 26px;
+      font-weight: 800;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -126,6 +142,10 @@
 
   <!-- Hier werden die App-Icons per JavaScript eingefügt -->
   <div class="raster" id="raster"></div>
+
+  <!-- Zweiter Bereich: Extensions (Icons per JavaScript) -->
+  <h2 class="ueberschrift">Extensions</h2>
+  <div class="raster" id="extensions-raster"></div>
 
   <script>
     // =====================================================
@@ -159,6 +179,34 @@
       kachel.querySelector(".name").textContent = app.name;
 
       raster.appendChild(kachel);
+    }
+
+    // =====================================================
+    // DEINE EXTENSIONS – hier kannst du neue hinzufügen.
+    // Name, Kürzel (kurzer Text im Icon), Farbe, Link.
+    // =====================================================
+    const extensions = [
+      { name: "uBlock Origin", kuerzel: "uB", farbe: "#e53935", link: "https://addons.mozilla.org/de/android/addon/ublock-origin/" },
+      { name: "SponsorBlock",  kuerzel: "SB", farbe: "#43a047", link: "https://addons.mozilla.org/de/android/addon/sponsorblock/" },
+    ];
+
+    // ===== Extension-Icons ins zweite Raster zeichnen =====
+    const extRaster = document.getElementById("extensions-raster");
+
+    for (const ext of extensions) {
+      const kachel = document.createElement("a");
+      kachel.className = "app";
+      kachel.href = ext.link;
+
+      kachel.innerHTML = `
+        <div class="icon"><span class="kuerzel"></span></div>
+        <div class="name"></div>
+      `;
+      kachel.querySelector(".icon").style.background = ext.farbe;
+      kachel.querySelector(".kuerzel").textContent = ext.kuerzel;
+      kachel.querySelector(".name").textContent = ext.name;
+
+      extRaster.appendChild(kachel);
     }
 
     // ===== Suchleiste =====
