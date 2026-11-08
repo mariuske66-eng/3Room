@@ -423,7 +423,7 @@
       { name: "YouTube",    kategorie: "Medien", link: "https://www.youtube.com",   svg: YOUTUBE_SVG },
       { name: "Instagram",  kategorie: "Social", link: "https://www.instagram.com", svg: INSTAGRAM_SVG },
       { name: "Spotify",    kategorie: "Medien", link: "https://open.spotify.com",  logo: "https://cdn.simpleicons.org/spotify/1DB954" },
-      { name: "Browser",    kategorie: "Tools",  aktion: "suche" }, // öffnet die Firefox-App
+      { name: "Browser",    kategorie: "Tools",  aktion: "suche" }, // öffnet DuckDuckGo im neuen Tab
     ];
 
     // Globus-Symbol für das Icon "Browser"
@@ -483,14 +483,12 @@
       kachel.appendChild(name);
 
       if (app.aktion === "suche") {
-        // Android-Intent: öffnet die Firefox-App mit DuckDuckGo
-        // (ohne Firefox: normale DuckDuckGo-Seite im Browser)
-        kachel.href = "intent://duckduckgo.com#Intent;scheme=https;package=org.mozilla.firefox;S.browser_fallback_url=https%3A%2F%2Fduckduckgo.com;end";
+        kachel.href = "https://duckduckgo.com";  // Browser-Icon: DuckDuckGo
       } else {
         kachel.href = app.link;
-        kachel.target = "_blank";   // öffnet in einem neuen Tab, 3Room bleibt offen
-        kachel.rel = "noopener";    // neue Seite bekommt keinen Zugriff auf 3Room
       }
+      kachel.target = "_blank";   // öffnet in einem neuen Tab, 3Room bleibt offen
+      kachel.rel = "noopener";    // neue Seite bekommt keinen Zugriff auf 3Room
       return kachel;
     }
 
