@@ -1,4 +1,4 @@
-# Erstellt die App-Symbole icon-192.png und icon-512.png für 3Room.
+# Erstellt die App-Symbole sonne-192.png und sonne-512.png für 3Room.
 # Zeichnet dieselben Formen wie icon.svg nach (Pillow kann SVG nicht öffnen).
 # Hintergrund: volles schwarzes Quadrat ohne runde Ecken, nicht durchsichtig.
 # Motiv: 70 % der Bildbreite, genau in der Mitte.
@@ -72,5 +72,5 @@ def erstelle_icon(groesse, dateiname):
     print("Gespeichert:", dateiname)
 
 
-erstelle_icon(192, "icon-192.png")
-erstelle_icon(512, "icon-512.png")
+erstelle_icon(192, "sonne-192.png")
+erstelle_icon(512, "sonne-512.png")
