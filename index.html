@@ -29,20 +29,7 @@
       padding: 56px 16px 40px;
     }
 
-    /* Dezenter pinker Schimmer am unteren Rand, wie ein Horizont */
-    body::before {
-      content: "";
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 25vh;                     /* unteres Viertel */
-      z-index: -1;
-      pointer-events: none;
-      background: linear-gradient(to top, rgba(255, 45, 110, 0.15), transparent);
-    }
-
-    /* ===== Kopfzeile: Logo + "3Room" ===== */
+    /* ===== Kopfzeile: kleines Logo ===== */
     .kopf {
       display: flex;
       align-items: center;
@@ -70,13 +57,13 @@
       margin-bottom: 28px;
       padding: 0 10px;
       border-radius: 10px;
-      background: #150a22;            /* sehr dunkles Lila */
-      border: 1px solid #5a0b99;      /* dünner lila Rand */
+      background: #1c1c1e;
+      border: 1px solid transparent;  /* unsichtbar, damit beim Fokus nichts springt */
     }
 
-    /* Beim Antippen: Rand wird pink */
+    /* Beim Antippen: dünner Rand in der Akzentfarbe */
     .suche:focus-within {
-      border-color: #ff2d6e;
+      border-color: #ff8a00;
     }
 
     .suche svg {
@@ -90,13 +77,12 @@
       outline: none;
       background: transparent;
       color: white;
-      caret-color: #ff2d6e;           /* Cursor in Pink */
       font-family: inherit;
       font-size: 16px;
     }
 
     .suche input::placeholder {
-      color: #8a6a9a;                 /* gedämpftes Lila-Grau */
+      color: #8e8e93;
     }
 
     /* ===== Raster mit 4 App-Icons pro Reihe ===== */
@@ -180,7 +166,7 @@
       display: flex;
     }
 
-    /* Das Fenster selbst, mit dunklem Milchglas-Effekt */
+    /* Das Fenster selbst: dunkelgrau */
     .fenster {
       width: 100%;
       max-width: 420px;
@@ -188,9 +174,7 @@
       overflow-y: auto;
       padding: 20px;
       border-radius: 22px;
-      background: rgba(30, 30, 36, 0.7);
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
+      background: #1c1c1e;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     }
 
@@ -219,16 +203,16 @@
       cursor: pointer;
     }
 
-    /* Suchleiste im Fenster: gleiche Optik, etwas weniger Abstand */
+    /* Suchleiste im Fenster: etwas heller, damit sie sich vom Fenster abhebt */
     .fenster .suche {
       margin-bottom: 16px;
+      background: #2c2c2e;
     }
 
     /* Liste der Extensions */
     .ext-liste {
       border-radius: 14px;
       overflow: hidden;
-      background: rgba(255, 255, 255, 0.08);
     }
 
     .ext-eintrag {
@@ -236,7 +220,7 @@
       padding: 12px 14px;
       color: white;
       text-decoration: none;
-      border-bottom: 1px solid #5a0b99;  /* Trennlinie in Lila */
+      border-bottom: 1px solid #2c2c2e;  /* dezente graue Trennlinie */
     }
 
     .ext-eintrag:last-child {
@@ -250,7 +234,6 @@
     .ext-name {
       font-size: 16px;
       font-weight: 600;
-      color: #ff8a00;                 /* Links in Orange */
     }
 
     .ext-text {
@@ -273,8 +256,8 @@
       padding: 12px;
       border: none;
       border-radius: 14px;
-      background: rgba(255, 255, 255, 0.12);
-      color: #ff8a00;                 /* Orange */
+      background: #2c2c2e;
+      color: #ff8a00;                 /* Akzentfarbe */
       font-family: inherit;
       font-size: 16px;
       font-weight: 600;
@@ -282,7 +265,7 @@
     }
 
     .hinzufuegen:active {
-      background: rgba(255, 255, 255, 0.2);
+      background: #3a3a3c;
     }
 
     /* Formular zum Hinzufügen (erst versteckt) */
@@ -301,7 +284,7 @@
       padding: 10px 14px;
       border-radius: 10px;
       border: none;
-      background: #1c1c1e;
+      background: #2c2c2e;            /* heller als das Fenster, sonst unsichtbar */
       color: white;
       font-family: inherit;
       font-size: 16px;
@@ -324,7 +307,7 @@
 <body>
 
   <div class="inhalt">
-    <!-- Kopfzeile: Logo + Name -->
+    <!-- Kopfzeile: kleines Logo -->
     <header class="kopf">
       <img src="icon.svg" alt="3Room">
     </header>
@@ -332,7 +315,7 @@
     <!-- Suchleiste -->
     <form class="suche" id="suchformular">
       <!-- Lupen-Symbol (grau) -->
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff8a00" stroke-width="2.5" stroke-linecap="round">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5" stroke-linecap="round">
         <circle cx="11" cy="11" r="7"></circle>
         <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
       </svg>
@@ -353,7 +336,7 @@
 
       <!-- Suche im Firefox-Add-on-Store -->
       <form class="suche" id="ext-suchformular">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff8a00" stroke-width="2.5" stroke-linecap="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5" stroke-linecap="round">
           <circle cx="11" cy="11" r="7"></circle>
           <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
         </svg>
