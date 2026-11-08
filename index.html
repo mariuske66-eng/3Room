@@ -111,20 +111,113 @@
       max-width: 76px;
     }
 
-    /* ===== Überschrift über einem Bereich ===== */
-    .ueberschrift {
-      max-width: 500px;
-      margin: 40px auto 16px;
-      font-size: 20px;
-      font-weight: 700;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    /* Icon "Extensions": schwarzer Hintergrund statt weiß */
+    .icon.schwarz {
+      background: black;
     }
 
-    /* Kürzel statt Logo (für Extensions) */
-    .kuerzel {
-      font-size: 26px;
-      font-weight: 800;
+    /* ===== Fenster (Overlay) für Extensions ===== */
+    /* Abgedunkelter Hintergrund über der ganzen Seite */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      display: none;               /* versteckt, bis es geöffnet wird */
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 10;
+    }
+
+    .overlay.offen {
+      display: flex;
+    }
+
+    /* Das Fenster selbst, mit Milchglas-Effekt */
+    .fenster {
+      width: 100%;
+      max-width: 420px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 20px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .fenster-kopf {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .fenster-kopf h2 {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    /* Runder X-Knopf zum Schließen */
+    .schliessen {
+      width: 30px;
+      height: 30px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
       color: white;
+      font-size: 18px;
+      line-height: 30px;
+      cursor: pointer;
+    }
+
+    /* Suchleiste im Fenster: gleiche Optik, nur ohne Abstand nach unten */
+    .fenster .suche {
+      margin: 0 0 16px;
+    }
+
+    /* Liste der Extensions */
+    .ext-liste {
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .ext-eintrag {
+      display: block;
+      padding: 12px 14px;
+      color: white;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .ext-eintrag:last-child {
+      border-bottom: none;
+    }
+
+    .ext-eintrag:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .ext-name {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .ext-text {
+      font-size: 13px;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    /* Kleiner grauer Hinweis ganz unten */
+    .hinweis {
+      margin-top: 14px;
+      font-size: 12px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.6);
     }
   </style>
 </head>
@@ -143,9 +236,29 @@
   <!-- Hier werden die App-Icons per JavaScript eingefügt -->
   <div class="raster" id="raster"></div>
 
-  <!-- Zweiter Bereich: Extensions (Icons per JavaScript) -->
-  <h2 class="ueberschrift">Extensions</h2>
-  <div class="raster" id="extensions-raster"></div>
+  <!-- Fenster "Extensions" (erst versteckt, öffnet sich beim Tipp aufs Icon) -->
+  <div class="overlay" id="ext-overlay">
+    <div class="fenster">
+      <div class="fenster-kopf">
+        <h2>Extensions</h2>
+        <button class="schliessen" id="ext-schliessen" aria-label="Schließen">✕</button>
+      </div>
+
+      <!-- Suche im Firefox-Add-on-Store -->
+      <form class="suche" id="ext-suchformular">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
+        </svg>
+        <input type="text" id="ext-suchfeld" placeholder="Add-ons suchen" autocomplete="off">
+      </form>
+
+      <!-- Hier wird die Liste per JavaScript eingefügt -->
+      <div class="ext-liste" id="ext-liste"></div>
+
+      <p class="hinweis">Einstellungen ändern: Firefox ⋮ → Erweiterungen</p>
+    </div>
+  </div>
 
   <script>
     // =====================================================
@@ -156,7 +269,6 @@
       { name: "YouTube",   link: "https://www.youtube.com" },
       { name: "Instagram", link: "https://www.instagram.com" },
       { name: "Spotify",   link: "https://open.spotify.com" },
-      { name: "Add-ons",   link: "https://addons.mozilla.org/de/android/" },
     ];
 
     // ===== App-Icons ins Raster zeichnen =====
@@ -181,33 +293,67 @@
       raster.appendChild(kachel);
     }
 
+    // ===== Icon "Extensions": lila Puzzleteil, öffnet das Fenster =====
+    const extIcon = document.createElement("a");
+    extIcon.className = "app";
+    extIcon.href = "#";
+    extIcon.innerHTML = `
+      <div class="icon schwarz">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="#a855f7">
+          <path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-2 .9-2 2v3.8h1.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7s2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/>
+        </svg>
+      </div>
+      <div class="name">Extensions</div>
+    `;
+    raster.appendChild(extIcon);
+
     // =====================================================
     // DEINE EXTENSIONS – hier kannst du neue hinzufügen.
-    // Name, Kürzel (kurzer Text im Icon), Farbe, Link.
+    // Einfach eine Zeile kopieren und Name, Beschreibung, Link ändern.
     // =====================================================
     const extensions = [
-      { name: "uBlock Origin", kuerzel: "uB", farbe: "#e53935", link: "https://addons.mozilla.org/de/android/addon/ublock-origin/" },
-      { name: "SponsorBlock",  kuerzel: "SB", farbe: "#43a047", link: "https://addons.mozilla.org/de/android/addon/sponsorblock/" },
+      { name: "uBlock Origin", beschreibung: "Blockt Werbung",                       link: "https://addons.mozilla.org/de/android/addon/ublock-origin/" },
+      { name: "SponsorBlock",  beschreibung: "Überspringt Werbeblöcke in Videos",    link: "https://addons.mozilla.org/de/android/addon/sponsorblock/" },
+      { name: "Unhook",        beschreibung: "Blendet Empfehlungen und Shorts aus",  link: "https://addons.mozilla.org/de/android/search/?q=unhook" },
     ];
 
-    // ===== Extension-Icons ins zweite Raster zeichnen =====
-    const extRaster = document.getElementById("extensions-raster");
+    // ===== Liste im Fenster füllen =====
+    const extListe = document.getElementById("ext-liste");
 
     for (const ext of extensions) {
-      const kachel = document.createElement("a");
-      kachel.className = "app";
-      kachel.href = ext.link;
-
-      kachel.innerHTML = `
-        <div class="icon"><span class="kuerzel"></span></div>
-        <div class="name"></div>
-      `;
-      kachel.querySelector(".icon").style.background = ext.farbe;
-      kachel.querySelector(".kuerzel").textContent = ext.kuerzel;
-      kachel.querySelector(".name").textContent = ext.name;
-
-      extRaster.appendChild(kachel);
+      const eintrag = document.createElement("a");
+      eintrag.className = "ext-eintrag";
+      eintrag.href = ext.link;
+      eintrag.innerHTML = `<div class="ext-name"></div><div class="ext-text"></div>`;
+      eintrag.querySelector(".ext-name").textContent = ext.name;
+      eintrag.querySelector(".ext-text").textContent = ext.beschreibung;
+      extListe.appendChild(eintrag);
     }
+
+    // ===== Fenster öffnen und schließen =====
+    const overlay = document.getElementById("ext-overlay");
+
+    extIcon.addEventListener("click", function (ereignis) {
+      ereignis.preventDefault(); // "#" nicht in die Adresse schreiben
+      overlay.classList.add("offen");
+    });
+
+    document.getElementById("ext-schliessen").addEventListener("click", function () {
+      overlay.classList.remove("offen");
+    });
+
+    // Tipp außerhalb des Fensters (auf den dunklen Hintergrund) schließt es
+    overlay.addEventListener("click", function (ereignis) {
+      if (ereignis.target === overlay) overlay.classList.remove("offen");
+    });
+
+    // ===== Suche im Add-on-Store =====
+    document.getElementById("ext-suchformular").addEventListener("submit", function (ereignis) {
+      ereignis.preventDefault();
+      const text = document.getElementById("ext-suchfeld").value.trim();
+      if (text === "") return;
+      window.location.href = "https://addons.mozilla.org/de/android/search/?q=" + encodeURIComponent(text);
+    });
 
     // ===== Suchleiste =====
     document.getElementById("suchformular").addEventListener("submit", function (ereignis) {
