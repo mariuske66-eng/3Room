@@ -150,12 +150,6 @@
       object-fit: contain;
     }
 
-    /* Weltkugel: SVG hat eigenen Rand eingebaut, darf die ganze Fläche nutzen */
-    .icon.ganz svg {
-      width: 100%;
-      height: 100%;
-    }
-
     /* Animation beim Antippen: Icon wird kurz kleiner */
     .app:active .icon {
       transform: scale(0.9);
@@ -422,38 +416,14 @@
       { name: "YouTube",    kategorie: "Medien", link: "https://www.youtube.com",   svg: YOUTUBE_SVG },
       { name: "Instagram",  kategorie: "Social", link: "https://www.instagram.com", svg: INSTAGRAM_SVG },
       { name: "Spotify",    kategorie: "Medien", link: "https://open.spotify.com",  logo: "https://cdn.simpleicons.org/spotify/1DB954" },
-      { name: "Browser",    kategorie: "Tools",  aktion: "suche" }, // öffnet DuckDuckGo im neuen Tab
     ];
-
-    // Globus-Symbol für das Icon "Browser"
-    const WEB_SVG = `
-      <svg width="100%" height="100%" viewBox="0 0 160 160">
-        <defs>
-          <linearGradient id="gl" gradientUnits="userSpaceOnUse"
-            x1="0" y1="28" x2="0" y2="132">
-            <stop offset="0" stop-color="#ffb000"/>
-            <stop offset="0.5" stop-color="#ff5a3c"/>
-            <stop offset="1" stop-color="#ff2d6e"/>
-          </linearGradient>
-        </defs>
-        <g fill="none" stroke="url(#gl)" stroke-width="4">
-          <circle cx="80" cy="80" r="52" stroke-width="5"/>
-          <ellipse cx="80" cy="80" rx="22" ry="52"/>
-          <line x1="28" y1="80" x2="132" y2="80"/>
-          <path d="M36,54 Q80,64 124,54"/>
-          <path d="M36,106 Q80,96 124,106"/>
-        </g>
-      </svg>`;
 
     // ===== Baut das abgerundete Quadrat einer App (ohne Link) =====
     function baueIcon(app) {
       const icon = document.createElement("div");
       icon.className = "icon";
 
-      if (app.aktion === "suche") {
-        icon.classList.add("ganz");  // Weltkugel bringt ihren Rand selbst mit
-        icon.innerHTML = WEB_SVG;
-      } else if (app.svg) {
+      if (app.svg) {
         // Eingebettetes SVG-Symbol
         icon.innerHTML = app.svg;
       } else if (app.logo) {
@@ -481,21 +451,15 @@
       name.textContent = app.name;
       kachel.appendChild(name);
 
-      if (app.aktion === "suche") {
-        kachel.href = "https://duckduckgo.com";  // Browser-Icon: DuckDuckGo
-      } else {
-        kachel.href = app.link;
-      }
+      kachel.href = app.link;
       kachel.target = "_blank";   // öffnet in einem neuen Tab, 3Room bleibt offen
       kachel.rel = "noopener";    // neue Seite bekommt keinen Zugriff auf 3Room
       return kachel;
     }
 
-    // ===== Reihenfolge: "Browser" zuerst, danach alle anderen alphabetisch =====
+    // ===== Reihenfolge: alle Apps alphabetisch =====
     // (Groß-/Kleinschreibung egal, Umlaute richtig einsortiert)
     const sortiert = [...apps].sort(function (a, b) {
-      if (a.aktion === "suche") return -1;  // Browser nach vorne
-      if (b.aktion === "suche") return 1;
       return a.name.localeCompare(b.name, "de", { sensitivity: "base" });
     });
 
