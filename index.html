@@ -109,6 +109,13 @@
       object-fit: cover;
     }
 
+    /* Logo aus dem Feld "logo": zentriert, 60 % der Icon-Größe */
+    .icon img.logo {
+      width: 60%;
+      height: 60%;
+      object-fit: contain;
+    }
+
     /* Animation beim Antippen: Icon wird kurz kleiner */
     .app:active .icon {
       transform: scale(0.9);
@@ -338,13 +345,15 @@
   <script>
     // =====================================================
     // DEINE APPS – hier kannst du einfach neue hinzufügen.
-    // Einfach eine Zeile kopieren und Name, Link, Kategorie ändern.
+    // Einfach eine Zeile kopieren und Name, Link, Kategorie, Logo ändern.
     // (Die Kategorie wird im Moment nicht benutzt.)
+    // Logo: Link von Simple Icons, z. B. https://cdn.simpleicons.org/NAME/FARBE
+    // Ohne Logo wird das kleine Website-Symbol (Favicon) gezeigt.
     // =====================================================
     const apps = [
-      { name: "YouTube",    kategorie: "Medien", link: "https://www.youtube.com" },
-      { name: "Instagram",  kategorie: "Social", link: "https://www.instagram.com" },
-      { name: "Spotify",    kategorie: "Medien", link: "https://open.spotify.com" },
+      { name: "YouTube",    kategorie: "Medien", link: "https://www.youtube.com",   logo: "https://cdn.simpleicons.org/youtube/FF0000" },
+      { name: "Instagram",  kategorie: "Social", link: "https://www.instagram.com", logo: "https://cdn.simpleicons.org/instagram/E4405F" },
+      { name: "Spotify",    kategorie: "Medien", link: "https://open.spotify.com",  logo: "https://cdn.simpleicons.org/spotify/1DB954" },
       { name: "Extensions", kategorie: "Tools",  aktion: "extensions" }, // öffnet das Extensions-Fenster
     ];
 
@@ -362,6 +371,14 @@
       if (app.aktion === "extensions") {
         icon.classList.add("schwarz");
         icon.innerHTML = PUZZLE_SVG;
+      } else if (app.logo) {
+        // Scharfes SVG-Logo auf schwarzem Hintergrund
+        icon.classList.add("schwarz");
+        const bild = document.createElement("img");
+        bild.className = "logo";
+        bild.src = app.logo;
+        bild.alt = "";
+        icon.appendChild(bild);
       } else {
         // Domain aus dem Link holen, z. B. "www.youtube.com", und Logo laden
         const domain = new URL(app.link).hostname;
