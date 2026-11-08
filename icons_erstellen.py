@@ -1,4 +1,4 @@
-# Erstellt die App-Symbole icon-192.png und icon-512.png für 3Room.
+# Erstellt die App-Symbole icon-192.png, icon-512.png und icon-maskable-512.png für 3Room.
 # Zeichnet dieselben Formen wie icon.svg nach (Pillow kann SVG nicht öffnen).
 # Hintergrund: volles schwarzes Quadrat ohne runde Ecken (Android rundet selbst ab).
 # Starten (aus dem Ordner 3Room): D:\Python\.venv\Scripts\python.exe icons_erstellen.py
@@ -23,13 +23,33 @@ MITTE_X, MITTE_Y, RADIUS = 80, 92, 44
 
 LUPE = 4  # erst 4-mal größer zeichnen, dann verkleinern: glattere Kanten
 
+# Umriss aller Formen im SVG: links 8, rechts 152, oben 48 (Kreis-Spitze), unten 128
+LOGO_BREITE = 152 - 8
+LOGO_MITTE_Y = (48 + 128) / 2
 
-def erstelle_icon(groesse):
+
+def erstelle_icon(groesse, dateiname, maskable=False):
     gross = groesse * LUPE
-    f = gross / 160  # Umrechnung SVG-Maß -> Pixel
+
+    if maskable:
+        # Logo kleiner: Es soll nur die inneren 70 % füllen (Sicherheitszone für
+        # Android) und genau in der Mitte stehen.
+        f = gross * 0.70 / LOGO_BREITE
+        mitte_y = LOGO_MITTE_Y
+    else:
+        # Normal: das ganze SVG-Raster (160 x 160) füllt das Bild
+        f = gross / 160
+        mitte_y = 80
+
+    # Umrechnung SVG-Punkt -> Pixel (Mitte des SVG landet in der Bildmitte)
+    def px(x):
+        return (x - 80) * f + gross / 2
+
+    def py(y):
+        return (y - mitte_y) * f + gross / 2
 
     def rechteck(x, y, b, h):
-        return [x * f, y * f, (x + b) * f, (y + h) * f]
+        return [px(x), py(y), px(x + b), py(y + h)]
 
     # 1. Schwarzer Hintergrund
     bild = Image.new("RGB", (gross, gross), "#000000")
@@ -42,8 +62,8 @@ def erstelle_icon(groesse):
 
     # ... und nur innerhalb des oberen Halbkreises übernehmen
     maske = Image.new("L", (gross, gross), 0)
-    kreis = [(MITTE_X - RADIUS) * f, (MITTE_Y - RADIUS) * f,
-             (MITTE_X + RADIUS) * f, (MITTE_Y + RADIUS) * f]
+    kreis = [px(MITTE_X - RADIUS), py(MITTE_Y - RADIUS),
+             px(MITTE_X + RADIUS), py(MITTE_Y + RADIUS)]
     ImageDraw.Draw(maske).pieslice(kreis, 180, 360, fill=255)
     bild.paste(streifen, (0, 0), maske)
 
@@ -54,10 +74,10 @@ def erstelle_icon(groesse):
 
     # 4. Auf Zielgröße verkleinern und speichern
     bild = bild.resize((groesse, groesse), Image.LANCZOS)
-    dateiname = f"icon-{groesse}.png"
     bild.save(dateiname)
     print("Gespeichert:", dateiname)
 
 
-for groesse in (192, 512):
-    erstelle_icon(groesse)
+erstelle_icon(192, "icon-192.png")
+erstelle_icon(512, "icon-512.png")
+erstelle_icon(512, "icon-maskable-512.png", maskable=True)
