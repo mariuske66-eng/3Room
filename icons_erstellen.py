@@ -1,8 +1,7 @@
-# Erstellt die App-Symbole icon-192.png, icon-512.png und icon-maskable-512.png für 3Room.
+# Erstellt die App-Symbole icon-192.png und icon-512.png für 3Room.
 # Zeichnet dieselben Formen wie icon.svg nach (Pillow kann SVG nicht öffnen).
-# icon-192/512: durchsichtiger Hintergrund, Motiv 85 % der Breite (der Launcher legt
-# selbst einen Rahmen drumherum).
-# Maskable: volles schwarzes Quadrat ohne runde Ecken (Android rundet selbst ab).
+# Hintergrund: volles schwarzes Quadrat ohne runde Ecken, nicht durchsichtig.
+# Motiv: 70 % der Bildbreite, genau in der Mitte.
 # Starten (aus dem Ordner 3Room): D:\Python\.venv\Scripts\python.exe icons_erstellen.py
 
 from PIL import Image, ImageDraw
@@ -30,40 +29,27 @@ LOGO_BREITE = 152 - 8
 LOGO_MITTE_Y = (48 + 128) / 2
 
 
-def erstelle_icon(groesse, dateiname, maskable=False):
+def erstelle_icon(groesse, dateiname):
     gross = groesse * LUPE
 
-    if maskable:
-        # Logo kleiner: Es soll nur die inneren 70 % füllen (Sicherheitszone für
-        # Android) und genau in der Mitte stehen.
-        f = gross * 0.70 / LOGO_BREITE
-        mitte_y = LOGO_MITTE_Y
-    else:
-        # Normal: Motiv 85 % der Bildbreite, genau in der Mitte
-        f = gross * 0.85 / LOGO_BREITE
-        mitte_y = LOGO_MITTE_Y
+    # Motiv 70 % der Bildbreite, genau in der Mitte
+    f = gross * 0.70 / LOGO_BREITE
 
-    # Hintergrund: maskable schwarz, sonst durchsichtig (RGBA mit Alpha 0)
-    if maskable:
-        modus, hintergrund = "RGB", "#000000"
-    else:
-        modus, hintergrund = "RGBA", (0, 0, 0, 0)
-
-    # Umrechnung SVG-Punkt -> Pixel (Mitte des SVG landet in der Bildmitte)
+    # Umrechnung SVG-Punkt -> Pixel (Mitte des Motivs landet in der Bildmitte)
     def px(x):
         return (x - 80) * f + gross / 2
 
     def py(y):
-        return (y - mitte_y) * f + gross / 2
+        return (y - LOGO_MITTE_Y) * f + gross / 2
 
     def rechteck(x, y, b, h):
         return [px(x), py(y), px(x + b), py(y + h)]
 
-    # 1. Hintergrund
-    bild = Image.new(modus, (gross, gross), hintergrund)
+    # 1. Schwarzer Hintergrund (RGB = ohne Durchsichtigkeit)
+    bild = Image.new("RGB", (gross, gross), "#000000")
 
     # 2. Sonnen-Streifen auf eigener Ebene zeichnen ...
-    streifen = Image.new(modus, (gross, gross), hintergrund)
+    streifen = Image.new("RGB", (gross, gross), "#000000")
     zeichnen = ImageDraw.Draw(streifen)
     for x, y, b, h, farbe in STREIFEN_SONNE:
         zeichnen.rectangle(rechteck(x, y, b, h), fill=farbe)
@@ -88,4 +74,3 @@ def erstelle_icon(groesse, dateiname, maskable=False):
 
 erstelle_icon(192, "icon-192.png")
 erstelle_icon(512, "icon-512.png")
-erstelle_icon(512, "icon-maskable-512.png", maskable=True)
