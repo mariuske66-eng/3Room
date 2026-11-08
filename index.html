@@ -212,6 +212,59 @@
       margin-top: 2px;
     }
 
+    /* Selbst hinzugefügte Einträge: kein Markieren/Link-Menü beim langen Drücken */
+    .ext-eintrag.eigen {
+      -webkit-touch-callout: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Knopf "+ Hinzufügen" */
+    .hinzufuegen {
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px;
+      border: none;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.25);
+      color: white;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .hinzufuegen:active {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* Formular zum Hinzufügen (erst versteckt) */
+    .ext-formular {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .ext-formular.offen {
+      display: flex;
+    }
+
+    .ext-formular input {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-family: inherit;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .ext-formular input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
     /* Kleiner grauer Hinweis ganz unten */
     .hinweis {
       margin-top: 14px;
@@ -255,6 +308,14 @@
 
       <!-- Hier wird die Liste per JavaScript eingefügt -->
       <div class="ext-liste" id="ext-liste"></div>
+
+      <!-- Eigene Einträge hinzufügen -->
+      <button class="hinzufuegen" id="ext-plus">+ Hinzufügen</button>
+      <form class="ext-formular" id="ext-formular">
+        <input type="text" id="ext-neu-name" placeholder="Name" autocomplete="off" required>
+        <input type="text" id="ext-neu-link" placeholder="Link (optional)" autocomplete="off">
+        <button type="submit" class="hinzufuegen">Speichern</button>
+      </form>
 
       <p class="hinweis">Einstellungen ändern: Firefox ⋮ → Erweiterungen</p>
     </div>
@@ -317,18 +378,131 @@
       { name: "Unhook",        beschreibung: "Blendet Empfehlungen und Shorts aus",  link: "https://addons.mozilla.org/de/android/search/?q=unhook" },
     ];
 
+    // ===== Selbst hinzugefügte Einträge im Browser speichern (localStorage) =====
+    const SPEICHER_NAME = "eigeneExtensions";
+
+    function ladeEigene() {
+      try {
+        return JSON.parse(localStorage.getItem(SPEICHER_NAME)) || [];
+      } catch (fehler) {
+        return []; // z. B. im privaten Modus: dann eben leer
+      }
+    }
+
+    function speichereEigene(liste) {
+      try {
+        localStorage.setItem(SPEICHER_NAME, JSON.stringify(liste));
+      } catch (fehler) {
+        // Speichern nicht möglich – Eintrag gilt dann nur bis zum Neuladen
+      }
+    }
+
+    let eigene = ladeEigene();
+
+    // Namen auf höchstens 21 Zeichen kürzen (20 Zeichen + "…")
+    function kuerze(name) {
+      return name.length > 21 ? name.slice(0, 20) + "…" : name;
+    }
+
     // ===== Liste im Fenster füllen =====
     const extListe = document.getElementById("ext-liste");
 
-    for (const ext of extensions) {
+    // Baut einen Listeneintrag (Name + optional Beschreibung)
+    function baueEintrag(name, beschreibung, link) {
       const eintrag = document.createElement("a");
       eintrag.className = "ext-eintrag";
-      eintrag.href = ext.link;
+      eintrag.href = link;
       eintrag.innerHTML = `<div class="ext-name"></div><div class="ext-text"></div>`;
-      eintrag.querySelector(".ext-name").textContent = ext.name;
-      eintrag.querySelector(".ext-text").textContent = ext.beschreibung;
-      extListe.appendChild(eintrag);
+      eintrag.querySelector(".ext-name").textContent = kuerze(name);
+      eintrag.querySelector(".ext-text").textContent = beschreibung;
+      return eintrag;
     }
+
+    function zeigeListe() {
+      extListe.innerHTML = ""; // erst leeren, dann neu aufbauen
+
+      // 1. Feste Einträge aus der Liste "extensions"
+      for (const ext of extensions) {
+        extListe.appendChild(baueEintrag(ext.name, ext.beschreibung, ext.link));
+      }
+
+      // 2. Selbst hinzugefügte Einträge darunter
+      eigene.forEach(function (ext, nummer) {
+        // Ohne Link: Suche im Store nach dem Namen
+        const link = ext.link || "https://addons.mozilla.org/de/android/search/?q=" + encodeURIComponent(ext.name);
+        const eintrag = baueEintrag(ext.name, "Selbst hinzugefügt", link);
+        eintrag.classList.add("eigen");
+        langDruecken(eintrag, function () {
+          if (confirm("Entfernen?")) {
+            eigene.splice(nummer, 1); // Eintrag aus der Liste nehmen
+            speichereEigene(eigene);
+            zeigeListe();
+          }
+        });
+        extListe.appendChild(eintrag);
+      });
+    }
+
+    // Langes Drücken (0,6 Sekunden) erkennen
+    function langDruecken(element, aktion) {
+      let zeitgeber = null;
+      let warLang = false;
+
+      element.addEventListener("pointerdown", function () {
+        warLang = false;
+        zeitgeber = setTimeout(function () {
+          warLang = true;
+          aktion();
+        }, 600);
+      });
+
+      // Loslassen, Wegziehen oder Scrollen bricht ab
+      for (const art of ["pointerup", "pointerleave", "pointercancel"]) {
+        element.addEventListener(art, function () { clearTimeout(zeitgeber); });
+      }
+
+      // Nach langem Drücken den Link nicht öffnen
+      element.addEventListener("click", function (ereignis) {
+        if (warLang) ereignis.preventDefault();
+      });
+
+      // Kein Browser-Menü beim langen Drücken
+      element.addEventListener("contextmenu", function (ereignis) {
+        ereignis.preventDefault();
+      });
+    }
+
+    zeigeListe();
+
+    // ===== Knopf "+ Hinzufügen" und Formular =====
+    const extFormular = document.getElementById("ext-formular");
+
+    document.getElementById("ext-plus").addEventListener("click", function () {
+      extFormular.classList.toggle("offen"); // Formular auf- bzw. zuklappen
+      if (extFormular.classList.contains("offen")) {
+        document.getElementById("ext-neu-name").focus();
+      }
+    });
+
+    extFormular.addEventListener("submit", function (ereignis) {
+      ereignis.preventDefault();
+      const name = document.getElementById("ext-neu-name").value.trim();
+      let link = document.getElementById("ext-neu-link").value.trim();
+      if (name === "") return; // Name ist Pflicht
+
+      // "https://" ergänzen, falls ein Link ohne angegeben wurde
+      if (link !== "" && !link.startsWith("http://") && !link.startsWith("https://")) {
+        link = "https://" + link;
+      }
+
+      eigene.push({ name: name, link: link });
+      speichereEigene(eigene);
+      zeigeListe();
+
+      // Felder leeren und Formular zuklappen
+      extFormular.reset();
+      extFormular.classList.remove("offen");
+    });
 
     // ===== Fenster öffnen und schließen =====
     const overlay = document.getElementById("ext-overlay");
