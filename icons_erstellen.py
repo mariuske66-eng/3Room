@@ -1,6 +1,8 @@
 # Erstellt die App-Symbole icon-192.png, icon-512.png und icon-maskable-512.png für 3Room.
 # Zeichnet dieselben Formen wie icon.svg nach (Pillow kann SVG nicht öffnen).
-# Hintergrund: volles schwarzes Quadrat ohne runde Ecken (Android rundet selbst ab).
+# icon-192/512: durchsichtiger Hintergrund, Motiv 85 % der Breite (der Launcher legt
+# selbst einen Rahmen drumherum).
+# Maskable: volles schwarzes Quadrat ohne runde Ecken (Android rundet selbst ab).
 # Starten (aus dem Ordner 3Room): D:\Python\.venv\Scripts\python.exe icons_erstellen.py
 
 from PIL import Image, ImageDraw
@@ -37,9 +39,15 @@ def erstelle_icon(groesse, dateiname, maskable=False):
         f = gross * 0.70 / LOGO_BREITE
         mitte_y = LOGO_MITTE_Y
     else:
-        # Normal: das ganze SVG-Raster (160 x 160) füllt das Bild
-        f = gross / 160
-        mitte_y = 80
+        # Normal: Motiv 85 % der Bildbreite, genau in der Mitte
+        f = gross * 0.85 / LOGO_BREITE
+        mitte_y = LOGO_MITTE_Y
+
+    # Hintergrund: maskable schwarz, sonst durchsichtig (RGBA mit Alpha 0)
+    if maskable:
+        modus, hintergrund = "RGB", "#000000"
+    else:
+        modus, hintergrund = "RGBA", (0, 0, 0, 0)
 
     # Umrechnung SVG-Punkt -> Pixel (Mitte des SVG landet in der Bildmitte)
     def px(x):
@@ -51,11 +59,11 @@ def erstelle_icon(groesse, dateiname, maskable=False):
     def rechteck(x, y, b, h):
         return [px(x), py(y), px(x + b), py(y + h)]
 
-    # 1. Schwarzer Hintergrund
-    bild = Image.new("RGB", (gross, gross), "#000000")
+    # 1. Hintergrund
+    bild = Image.new(modus, (gross, gross), hintergrund)
 
     # 2. Sonnen-Streifen auf eigener Ebene zeichnen ...
-    streifen = Image.new("RGB", (gross, gross), "#000000")
+    streifen = Image.new(modus, (gross, gross), hintergrund)
     zeichnen = ImageDraw.Draw(streifen)
     for x, y, b, h, farbe in STREIFEN_SONNE:
         zeichnen.rectangle(rechteck(x, y, b, h), fill=farbe)
