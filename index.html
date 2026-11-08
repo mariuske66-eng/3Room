@@ -406,8 +406,8 @@
     // Ohne Logo wird das kleine Website-Symbol (Favicon) gezeigt.
     // =====================================================
     const apps = [
-      { name: "YouTube",    kategorie: "Medien", link: "https://www.youtube.com",   logo: "https://cdn.simpleicons.org/youtube/FF0000" },
-      { name: "Instagram",  kategorie: "Social", link: "https://www.instagram.com", logo: "https://cdn.simpleicons.org/instagram/E4405F" },
+      { name: "YouTube",    kategorie: "Medien", link: "https://www.youtube.com",   bild: "icons/youtube.png" },
+      { name: "Instagram",  kategorie: "Social", link: "https://www.instagram.com", bild: "icons/instagram.webp" },
       { name: "Spotify",    kategorie: "Medien", link: "https://open.spotify.com",  logo: "https://cdn.simpleicons.org/spotify/1DB954" },
       { name: "Browser",    kategorie: "Tools",  aktion: "suche" }, // öffnet die Firefox-App
     ];
@@ -441,6 +441,12 @@
       if (app.aktion === "suche") {
         icon.classList.add("schwarz");
         icon.innerHTML = WEB_SVG;
+      } else if (app.bild) {
+        // Offizielles Startbildschirm-Icon: füllt das Quadrat komplett
+        const bild = document.createElement("img");
+        bild.src = app.bild;
+        bild.alt = "";
+        icon.appendChild(bild);
       } else if (app.logo) {
         // Scharfes SVG-Logo auf schwarzem Hintergrund
         icon.classList.add("schwarz");
