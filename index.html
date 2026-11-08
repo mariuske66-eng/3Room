@@ -72,37 +72,11 @@
       color: #8e8e93;
     }
 
-    /* ===== Kategorie-Kacheln: 2 pro Reihe ===== */
-    .kacheln {
+    /* ===== Raster mit 4 App-Icons pro Reihe ===== */
+    .raster {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px 18px;
-    }
-
-    .kategorie {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    /* Der Milchglas-Kasten mit 2x2 Icons */
-    .kasten {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-      padding: 14px;
-      border-radius: 24px;
-      background: rgba(40, 40, 50, 0.45);   /* halbtransparent dunkel */
-      backdrop-filter: blur(30px);          /* Hintergrund unscharf */
-      -webkit-backdrop-filter: blur(30px);
-      aspect-ratio: 1;                       /* immer quadratisch */
-    }
-
-    /* Kategorie-Name klein und grau unter der Kachel */
-    .kategorie-name {
-      font-size: 13px;
-      color: #8e8e93;
-      text-align: center;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px 12px;
     }
 
     /* ===== Ein App-Icon ===== */
@@ -118,7 +92,7 @@
 
     /* Das abgerundete Quadrat: Logo füllt es komplett */
     .icon {
-      width: 100%;
+      width: 60px;
       aspect-ratio: 1;
       border-radius: 22%;
       overflow: hidden;
@@ -136,8 +110,7 @@
     }
 
     /* Animation beim Antippen: Icon wird kurz kleiner */
-    .app:active .icon,
-    .mini:active {
+    .app:active .icon {
       transform: scale(0.9);
     }
 
@@ -146,25 +119,7 @@
       background: black;
     }
 
-    /* 4. Feld bei mehr als 4 Apps: kleine Mini-Icons der restlichen Apps */
-    .mini {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 4px;
-      align-content: start;
-      aspect-ratio: 1;
-      padding: 2px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      transition: transform 0.15s ease;
-    }
-
-    .mini .icon {
-      border-radius: 24%;
-    }
-
-    /* Name unter dem Icon (nur im Kategorie-Fenster) */
+    /* Name unter dem Icon */
     .name {
       font-size: 12px;
       text-align: center;
@@ -233,17 +188,6 @@
     /* Suchleiste im Fenster: gleiche Optik, etwas weniger Abstand */
     .fenster .suche {
       margin-bottom: 16px;
-    }
-
-    /* Alle Apps einer Kategorie im Fenster: 4 pro Reihe */
-    .fenster-raster {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px 12px;
-    }
-
-    .fenster-raster .icon {
-      width: 60px;
     }
 
     /* Liste der Extensions */
@@ -355,19 +299,8 @@
       <input type="text" id="suchfeld" placeholder="Suchen" autocomplete="off">
     </form>
 
-    <!-- Hier werden die Kategorie-Kacheln per JavaScript eingefügt -->
-    <div class="kacheln" id="kacheln"></div>
-  </div>
-
-  <!-- Fenster für alle Apps einer Kategorie (bei mehr als 4 Apps) -->
-  <div class="overlay" id="kat-overlay">
-    <div class="fenster">
-      <div class="fenster-kopf">
-        <h2 id="kat-titel"></h2>
-        <button class="schliessen" aria-label="Schließen">✕</button>
-      </div>
-      <div class="fenster-raster" id="kat-raster"></div>
-    </div>
+    <!-- Hier werden die App-Icons per JavaScript eingefügt -->
+    <div class="raster" id="raster"></div>
   </div>
 
   <!-- Fenster "Extensions" (erst versteckt, öffnet sich beim Tipp aufs Icon) -->
@@ -406,7 +339,7 @@
     // =====================================================
     // DEINE APPS – hier kannst du einfach neue hinzufügen.
     // Einfach eine Zeile kopieren und Name, Link, Kategorie ändern.
-    // Eine neue Kategorie bekommt automatisch eine eigene Kachel.
+    // (Die Kategorie wird im Moment nicht benutzt.)
     // =====================================================
     const apps = [
       { name: "YouTube",    kategorie: "Medien", link: "https://www.youtube.com" },
@@ -437,18 +370,16 @@
       return icon;
     }
 
-    // ===== Baut eine antippbare App (Icon, optional mit Name darunter) =====
-    function baueApp(app, mitName) {
+    // ===== Baut eine antippbare App (Icon mit Name darunter) =====
+    function baueApp(app) {
       const kachel = document.createElement("a");
       kachel.className = "app";
       kachel.appendChild(baueIcon(app));
 
-      if (mitName) {
-        const name = document.createElement("div");
-        name.className = "name";
-        name.textContent = app.name;
-        kachel.appendChild(name);
-      }
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = app.name;
+      kachel.appendChild(name);
 
       if (app.aktion === "extensions") {
         kachel.href = "#";
@@ -462,60 +393,11 @@
       return kachel;
     }
 
-    // ===== Kategorie-Kacheln automatisch bauen =====
-    // Apps nach Kategorie sortieren (Reihenfolge: wie sie zuerst in der Liste vorkommen)
-    const kategorien = {};
-    for (const app of apps) {
-      if (!kategorien[app.kategorie]) kategorien[app.kategorie] = [];
-      kategorien[app.kategorie].push(app);
-    }
+    // ===== App-Icons ins Raster zeichnen =====
+    const raster = document.getElementById("raster");
+    for (const app of apps) raster.appendChild(baueApp(app));
 
-    const kachelBereich = document.getElementById("kacheln");
-
-    for (const [kategorie, liste] of Object.entries(kategorien)) {
-      const block = document.createElement("div");
-      block.className = "kategorie";
-
-      const kasten = document.createElement("div");
-      kasten.className = "kasten";
-
-      if (liste.length <= 4) {
-        // Bis zu 4 Apps: alle groß zeigen
-        for (const app of liste) kasten.appendChild(baueApp(app, false));
-      } else {
-        // Mehr als 4: die ersten 3 groß, das 4. Feld zeigt Mini-Icons der restlichen
-        for (const app of liste.slice(0, 3)) kasten.appendChild(baueApp(app, false));
-
-        const mini = document.createElement("button");
-        mini.className = "mini";
-        for (const app of liste.slice(3, 7)) mini.appendChild(baueIcon(app));
-        mini.addEventListener("click", function () {
-          zeigeKategorie(kategorie, liste);
-        });
-        kasten.appendChild(mini);
-      }
-
-      const name = document.createElement("div");
-      name.className = "kategorie-name";
-      name.textContent = kategorie;
-
-      block.appendChild(kasten);
-      block.appendChild(name);
-      kachelBereich.appendChild(block);
-    }
-
-    // ===== Fenster mit allen Apps einer Kategorie =====
-    const katOverlay = document.getElementById("kat-overlay");
-
-    function zeigeKategorie(kategorie, liste) {
-      document.getElementById("kat-titel").textContent = kategorie;
-      const katRaster = document.getElementById("kat-raster");
-      katRaster.innerHTML = "";
-      for (const app of liste) katRaster.appendChild(baueApp(app, true));
-      oeffne(katOverlay);
-    }
-
-    // ===== Fenster öffnen und schließen (gilt für beide Fenster) =====
+    // ===== Fenster öffnen und schließen =====
     const extOverlay = document.getElementById("ext-overlay");
 
     function oeffne(overlay) {
