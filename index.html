@@ -475,7 +475,9 @@
           document.getElementById("suchfeld").focus(); // Cursor rein, Tastatur geht auf
         });
       } else {
-        kachel.href = app.link;  // öffnet im selben Tab
+        kachel.href = app.link;
+        kachel.target = "_blank";   // öffnet in einem neuen Tab, 3Room bleibt offen
+        kachel.rel = "noopener";    // neue Seite bekommt keinen Zugriff auf 3Room
       }
       return kachel;
     }
@@ -674,10 +676,10 @@
         const adresse = text.startsWith("http://") || text.startsWith("https://")
           ? text
           : "https://" + text;
-        window.location.href = adresse;
+        window.open(adresse, "_blank", "noopener");  // neuer Tab
       } else {
-        // Sonst bei DuckDuckGo suchen
-        window.location.href = "https://duckduckgo.com/?q=" + encodeURIComponent(text);
+        // Sonst bei DuckDuckGo suchen, im neuen Tab
+        window.open("https://duckduckgo.com/?q=" + encodeURIComponent(text), "_blank", "noopener");
       }
     });
   </script>
